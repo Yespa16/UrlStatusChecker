@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Urls and their status codes</h2>
+    <h3 id='updated-text'></h3>
+    <table>
+        <tr>
+            <th>URL</th>
+            <th>Status</th>
+        </tr>
+
+        {% for url in urls %}
+            <tr>        
+                <td class="url">{{ url }}</td>
+                <td class='url_status-code'id="url-"></td>
+            </tr>
+        {% endfor %}
+    </table>
+    <button id="stop-requests">Stop Checking</button>
+
+    <script>
+
+        urls = document.querySelectorAll(".url");
+        urls_statusCodes = document.querySelectorAll(".url_status-code");
+        
+
+        const interval = setInterval(() => {
+
+            for (let i=0;i<urls.length;i++) {
+                urls_statusCodes[i].id = `url-${i}`; // Updating rows ids in table
+                checkUrlStatus(urls[i].innerText, i);
+            }
+
+            // Showing when data was updated
+            let today = new Date();
+            let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            document.querySelector("#updated-text").innerText = "Data was updated at  " + time;
+            
+        }, 2000);
+
+
+
+        function checkUrlStatus(url, row) {
+            // Fetch request to server (returns status code of the url)
+            fetch(`http://localhost:8000/check-url/${url}`, {
+                method: "GET",
+            })
+            .then(resp => {return resp.json()})
+            .then(data => {
+                
+                let url_code = document.querySelector(`#url-${row}`) // row variable is the row of the url in table
+                url_code.innerText = data
+
+                if (data == 200) {
+                    url_code.style.color = "green"
+                }else {
+                    url_code.style.color = "red"
+                }
+                
+            })
+        }
+        
+        document.querySelector("#stop-requests").addEventListener("click", () => {
+            clearInterval(interval);
+        });
+
+    </script>
+</body>
+</html>
